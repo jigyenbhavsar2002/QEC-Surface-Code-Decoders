@@ -1,6 +1,6 @@
 # Surface code decoders: MWPM vs a from-scratch union-find decoder
 
-A short, self-directed project on quantum error correction. I simulate the rotated surface code under
+A short, self-directed project (about one week) on quantum error correction. I simulate the rotated surface code under
 circuit-level depolarizing noise, estimate the error threshold with minimum-weight perfect matching (MWPM), implement a
 **union-find decoder from scratch**, and compare the two decoders on identical samples.
 
@@ -8,11 +8,11 @@ circuit-level depolarizing noise, estimate the error threshold with minimum-weig
 
 | Quantity | Result |
 |---|---|
-| MWPM threshold, full sweep (d = 3, 5, 7, 9; pairwise curve crossings) | **≈ 0.69 %** (spread of crossings ± 0.07 %) |
-| MWPM threshold from sub-threshold scaling fit | ≈ 0.73 % |
-| MWPM threshold, paired comparison run (d = 3, 5, 7) | ≈ 0.71 % |
-| Union-find threshold, paired comparison run (d = 3, 5, 7) | **≈ 0.51 %** (about 27 % below MWPM) |
-| Union-find logical error rate at p ≈ 0.4 %, d = 7 | about twice MWPM's |
+| MWPM threshold, full sweep (d = 3, 5, 7, 9; mean of pairwise curve crossings) | **≈ 0.73 %** (crossings 0.65, 0.71, 0.85 %; spread ± 0.08 %) |
+| MWPM threshold from sub-threshold scaling fit (p_L = A (p/p_th)^((d+1)/2)) | ≈ 0.71 % (A ≈ 0.040) |
+| MWPM threshold, paired comparison run (d = 3, 5, 7) | ≈ 0.67 % |
+| Union-find threshold, paired comparison run (d = 3, 5, 7) | **≈ 0.51 %** (about 23 % below MWPM) |
+| Union-find logical error rate at p ≈ 0.4 %, d = 7 | about twice MWPM's (2.2 ± 0.2×; 426 vs 198 logical errors) |
 
 The ± values are the spread between pairwise crossings (d = 3 vs 5, 5 vs 7, ...), not statistical confidence intervals.
 
@@ -37,7 +37,8 @@ The ± values are the spread between pairwise crossings (d = 3 vs 5, 5 vs 7, ...
 
 ### 1. MWPM threshold and sub-threshold scaling
 Below threshold the logical error rate falls with distance; above it, it rises. Pairwise crossings drift upward with d
-(finite-size effects), which is why I quote a spread rather than a single sharp value.
+(0.65 %, 0.71 %, 0.85 % for d = 3-5, 5-7, 7-9; a finite-size effect), which is why I quote a spread rather than a
+single sharp value and cross-check with the scaling fit.
 
 ![Sub-threshold scaling](figures/subthreshold_lambda.png)
 *Dashed line is p_th/p using the crossing-based p_th. Measured Λ drops below it near threshold, where the asymptotic
@@ -49,7 +50,8 @@ Both decoders decode exactly the same detection events.
 ![MWPM vs UF](figures/mwpm_vs_uf.png)
 *Solid: MWPM. Dashed: union-find. Points with very few errors (low p, d = 7) have large relative uncertainty.*
 
-The thresholds are about **0.71 % (MWPM)** and **0.51 % (union-find)**. Union-find is less accurate because it ignores
+The thresholds are about **0.67 % (MWPM)** and **0.51 % (union-find)** (from d = 3, 5, 7 only, i.e. two crossings each).
+At p ≈ 0.4 % and d = 7 union-find has about twice the logical error rate of MWPM. Union-find is less accurate because it ignores
 edge weights, which are non-uniform under circuit-level noise, so it cannot prefer the more likely error chain when
 growing clusters. Averaged over the whole (d, p) grid the two decoders disagreed on the logical outcome in 2.6 % of
 shots; this is dominated by high-p points and is only indicative.
@@ -57,7 +59,7 @@ shots; this is dominated by high-p points and is only indicative.
 ### 3. Runtime
 ![Runtime](figures/runtime.png)
 
-Averaged over the sweep, MWPM took about 2.6 µs per shot and my union-find about 52 µs. My union-find is pure Python and
+Averaged over the sweep, MWPM took about 2.6 µs per shot and my union-find about 51 µs. My union-find is pure Python and
 PyMatching is C++, so this gap is mostly an implementation difference and **not** a fair algorithmic comparison.
 With three distances and a single p, I draw no conclusion about asymptotic scaling.
 
@@ -74,7 +76,9 @@ With three distances and a single p, I draw no conclusion about asymptotic scali
 │   ├── union_find.py     # union-find decoder (growth + peeling)
 │   └── compare.py        # MWPM vs union-find on identical samples
 ├── tests/test_union_find.py
-├── scripts/run_all.sh    # regenerates all data and figures
+├── scripts/
+│   ├── generate_all.py   # ONE command: regenerates all data/ and figures/
+│   └── run_all.sh        # thin wrapper around generate_all.py
 ├── data/                 # CSV results
 └── figures/              # plots used in this README
 ```
@@ -86,11 +90,12 @@ Requires Python ≥ 3.10.
 ```bash
 pip install -r requirements.txt
 python -m pytest tests -q      # decoder validation
-bash scripts/run_all.sh        # sweep, threshold analysis, decoder comparison -> data/, figures/
+python scripts/generate_all.py            # full run: all CSVs, summary.txt and the four figures
+python scripts/generate_all.py --quick    # small test run of the whole pipeline
 ```
 
-Runtime depends on your machine (the full sweep can take tens of minutes). Shot counts and p ranges can be changed with
-command-line flags (`python src/sweep.py --help`, `python src/compare.py --help`).
+The full run takes roughly 10-30 minutes depending on the machine. `data/summary.txt` lists every number quoted in this
+README. Sampling is unseeded, so numbers vary slightly (within statistical error) between runs.
 
 ## Tests
 
@@ -100,8 +105,10 @@ distance below threshold.
 
 ## Limitations
 
-- Few distances in the comparison (3-7) and modest shot counts near threshold; thresholds are estimates with
+- Few distances in the comparison (3-7) and modest shot counts (50,000 per point); thresholds are estimates with
   finite-size drift.
+- Point-to-point scatter is statistical. For example the d = 7 MWPM point near p = 0.23 % in the comparison run sits
+  about 2.5σ above the value interpolated from the independent sweep.
 - One noise model only (uniform circuit-level depolarizing).
 - Union-find uses unweighted growth; a weighted version would likely close part of the gap to MWPM.
 - The sub-threshold fit uses few points because most low-p points have too few logical errors.
