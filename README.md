@@ -1,7 +1,5 @@
 # Surface code decoders: MWPM vs a from-scratch union-find decoder
 
-![tests](https://github.com/<your-username>/qec-surface-code-decoders/actions/workflows/tests.yml/badge.svg)
-
 A short, self-directed project (about one week) on quantum error correction. I simulate the rotated surface code under
 circuit-level depolarizing noise, estimate the error threshold with minimum-weight perfect matching (MWPM), implement a
 **union-find decoder from scratch**, and compare the two decoders on identical samples.
