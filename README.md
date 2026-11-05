@@ -37,15 +37,9 @@ Below threshold the logical error rate falls with distance; above it, it rises. 
 (0.65 %, 0.71 %, 0.85 % for d = 3-5, 5-7, 7-9; a finite-size effect), which is why I quote a spread rather than a
 single sharp value and cross-check with the scaling fit.
 
-![Sub-threshold scaling]
-*Dashed line is p_th/p using the crossing-based p_th. Measured Λ drops below it near threshold, where the asymptotic
-scaling is less accurate. Only points with at least 20 logical errors are used.*
 
 ### 2. MWPM vs union-find (paired samples)
 Both decoders decode exactly the same detection events.
-
-![MWPM vs UF]
-*Solid: MWPM. Dashed: union-find. Points with very few errors (low p, d = 7) have large relative uncertainty.*
 
 The thresholds are about **0.67 % (MWPM)** and **0.51 % (union-find)** (from d = 3, 5, 7 only, i.e. two crossings each).
 At p ≈ 0.4 % and d = 7 union-find has about twice the logical error rate of MWPM. Union-find is less accurate because it ignores
