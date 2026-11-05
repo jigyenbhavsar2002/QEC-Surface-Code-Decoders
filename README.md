@@ -16,17 +16,14 @@ circuit-level depolarizing noise, estimate the error threshold with minimum-weig
 
 The ± values are the spread between pairwise crossings (d = 3 vs 5, 5 vs 7, ...), not statistical confidence intervals.
 
-![MWPM threshold](figures/threshold_mwpm.png)
-*Logical error rate over d rounds. Points with zero observed errors are omitted; error bars are binomial standard errors.*
-
 ## Method
 
-- **Code and noise.** Rotated surface code Z-memory experiment generated with [Stim](https://github.com/quantumlib/Stim),
+- **Code and noise.** Rotated surface code Z-memory experiment generated with [Stim],
   `rounds = d`. Depolarizing noise of strength `p` after Clifford gates and on data qubits before each round, plus
   reset and measurement flips of probability `p`.
 - **Decoding graph.** Stim's detector error model (decomposed into graphlike errors) is converted to a matching graph:
   detectors are nodes, error mechanisms are edges, plus one virtual boundary node.
-- **MWPM.** [PyMatching](https://github.com/oscarhiggott/PyMatching), with edge weights `log((1-p_e)/p_e)`.
+- **MWPM.** [PyMatching], with edge weights `log((1-p_e)/p_e)`.
 - **Union-find (my implementation, `src/union_find.py`).** Delfosse-Nickerson: odd clusters grow by half an edge,
   fully grown edges merge clusters (union-find with small-to-large merging), clusters touching the boundary are neutral,
   and a peeling step on a spanning forest produces the correction. Growth ignores edge weights.
@@ -40,14 +37,14 @@ Below threshold the logical error rate falls with distance; above it, it rises. 
 (0.65 %, 0.71 %, 0.85 % for d = 3-5, 5-7, 7-9; a finite-size effect), which is why I quote a spread rather than a
 single sharp value and cross-check with the scaling fit.
 
-![Sub-threshold scaling](figures/subthreshold_lambda.png)
+![Sub-threshold scaling]
 *Dashed line is p_th/p using the crossing-based p_th. Measured Λ drops below it near threshold, where the asymptotic
 scaling is less accurate. Only points with at least 20 logical errors are used.*
 
 ### 2. MWPM vs union-find (paired samples)
 Both decoders decode exactly the same detection events.
 
-![MWPM vs UF](figures/mwpm_vs_uf.png)
+![MWPM vs UF]
 *Solid: MWPM. Dashed: union-find. Points with very few errors (low p, d = 7) have large relative uncertainty.*
 
 The thresholds are about **0.67 % (MWPM)** and **0.51 % (union-find)** (from d = 3, 5, 7 only, i.e. two crossings each).
@@ -57,7 +54,6 @@ growing clusters. Averaged over the whole (d, p) grid the two decoders disagreed
 shots; this is dominated by high-p points and is only indicative.
 
 ### 3. Runtime
-![Runtime](figures/runtime.png)
 
 Averaged over the sweep, MWPM took about 2.6 µs per shot and my union-find about 51 µs. My union-find is pure Python and
 PyMatching is C++, so this gap is mostly an implementation difference and **not** a fair algorithmic comparison.
@@ -113,12 +109,6 @@ distance below threshold.
 - Union-find uses unweighted growth; a weighted version would likely close part of the gap to MWPM.
 - The sub-threshold fit uses few points because most low-p points have too few logical errors.
 
-## What I'd do next
-
-- Weighted union-find growth, and measure how much of the accuracy gap it recovers.
-- Compare code-capacity, phenomenological and circuit-level thresholds under the same decoder.
-- Biased and correlated noise; correlated matching.
-- A compiled union-find implementation for a fair runtime comparison.
 
 ## References
 
