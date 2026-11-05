@@ -73,20 +73,6 @@ With three distances and a single p, I draw no conclusion about asymptotic scali
 └── figures/              # plots used in this README
 ```
 
-## Reproduce
-
-Requires Python ≥ 3.10.
-
-```bash
-pip install -r requirements.txt
-python -m pytest tests -q      # decoder validation
-python scripts/generate_all.py            # full run: all CSVs, summary.txt and the four figures
-python scripts/generate_all.py --quick    # small test run of the whole pipeline
-```
-
-The full run takes roughly 10-30 minutes depending on the machine. `data/summary.txt` lists every number quoted in this
-README. Sampling is unseeded, so numbers vary slightly (within statistical error) between runs.
-
 ## Tests
 
 `tests/test_union_find.py` checks that every single error mechanism is corrected at d = 3 and 5, that the empty syndrome
